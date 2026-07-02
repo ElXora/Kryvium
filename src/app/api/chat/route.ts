@@ -73,21 +73,38 @@ export async function POST(req: NextRequest) {
     };
   });
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelOption.geminiModel}:streamGenerateContent?alt=sse&key=${apiKey}`;
+  const url = (geminiModel: string) =>
+    `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:streamGenerateContent?alt=sse&key=${apiKey}`;
+
+  const requestBody = JSON.stringify({
+    contents,
+    systemInstruction: { parts: [{ text: systemPrompt }] },
+    generationConfig: {
+      temperature: modelOption.id === "kryvium-tank" ? 0.4 : 0.6,
+      maxOutputTokens: 8000,
+    },
+  });
 
   try {
-    const geminiRes = await fetch(url, {
+    let geminiRes = await fetch(url(modelOption.geminiModel), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents,
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        generationConfig: {
-          temperature: modelOption.id === "kryvium-tank" ? 0.4 : 0.6,
-          maxOutputTokens: 8000,
-        },
-      }),
+      body: requestBody,
     });
+
+    // Gemini model IDs get renamed/deprecated frequently — if the primary
+    // model 404s, transparently retry once with the fallback model instead
+    // of surfacing a broken error to the user.
+    if (geminiRes.status === 404) {
+      console.error(
+        `Kryvium: model "${modelOption.geminiModel}" not found — retrying with fallback "${modelOption.fallbackGeminiModel}".`
+      );
+      geminiRes = await fetch(url(modelOption.fallbackGeminiModel), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: requestBody,
+      });
+    }
 
     if (!geminiRes.ok || !geminiRes.body) {
       const errText = await geminiRes.text();

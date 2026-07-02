@@ -33,19 +33,19 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="animate-fade-in relative flex h-screen w-screen overflow-hidden" style={{ background: "var(--bg)" }}>
-      {/* Desktop sliding panel — width and transform animate together so the
-          panel visually slides out to the left rather than snapping. */}
+      {/* Desktop sliding panel — fixed width, animated margin-left. Using a
+          single animated property (instead of width + transform together)
+          avoids the two transitions fighting each other and gives a
+          smooth, reliable slide in every browser. */}
       <div
         className="hidden flex-shrink-0 overflow-hidden md:block"
-        style={{ width: collapsed ? 0 : 256, transition: `width ${SLIDE_MS}ms ${SLIDE_EASE}` }}
+        style={{
+          width: 256,
+          marginLeft: collapsed ? -256 : 0,
+          transition: `margin-left ${SLIDE_MS}ms ${SLIDE_EASE}`,
+        }}
       >
-        <div
-          className="h-full w-64"
-          style={{
-            transform: collapsed ? "translateX(-100%)" : "translateX(0)",
-            transition: `transform ${SLIDE_MS}ms ${SLIDE_EASE}`,
-          }}
-        >
+        <div className="h-full w-64">
           <Sidebar onToggleCollapse={() => setCollapsed(true)} />
         </div>
       </div>

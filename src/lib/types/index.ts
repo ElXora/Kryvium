@@ -5,6 +5,7 @@ export interface ModelOption {
   label: string;
   description: string;
   geminiModel: string;
+  fallbackGeminiModel: string;
 }
 
 export const MODEL_OPTIONS: ModelOption[] = [
@@ -13,12 +14,14 @@ export const MODEL_OPTIONS: ModelOption[] = [
     label: "Kryvium Turbo",
     description: "Fast responses, great for everyday coding",
     geminiModel: "gemini-3.5-flash",
+    fallbackGeminiModel: "gemini-2.5-flash",
   },
   {
     id: "kryvium-tank",
     label: "Kryvium Tank",
     description: "Heavier reasoning, best for complex problems",
-    geminiModel: "gemini-3.1-pro",
+    geminiModel: "gemini-3.1-pro-preview",
+    fallbackGeminiModel: "gemini-2.5-pro",
   },
 ];
 
